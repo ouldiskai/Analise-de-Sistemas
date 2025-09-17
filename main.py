@@ -7,22 +7,27 @@ users = db.users
 
 ## ↓ adiciona os três usuários padrão para operações básicas ↓
 usuarios_inicias = [
-    {"user": "admin", "password": "123"},
+    {"user": "admin", "password": "123", "ac": '1'},
     {"user": "usuario1", "password": "senha1"},
-    {"user": "usuario2-", "password": "442"}
+    {"user": "usuario2", "password": "442"}
 ]
 
-def verif_dupl(user, password):
+def verif_dupl(user, password,ac):
     # ↓ aqui ele verifica se o user já existe na coleção e, se sim, retorna o código
     if users.find_one({'user': user}):
         return -1
     else:
-        users.insert_one({"user": user, "password": password})
+        users.insert_one({"user": user, "password": password, "ac" : ac})
         return None
 
 for usuario in usuarios_inicias:
     # ↓ aqui ele chama a função pra verificar se os usuários iniciais já existem
-    verif_dupl(usuario['user'], usuario['password'])
+    if usuario.get('ac'):
+        verif_dupl(usuario['user'], usuario['password'], usuario['ac'])
+        continue
+    verif_dupl(usuario['user'], usuario['password'], '')
+
+
 
 def cadastro():
     user = str(input("Insira nome de usuário: "))
@@ -50,7 +55,7 @@ def logar():
            verifica se o usuário é o administrador em específico, isso só é possível por conta
          ↓ da função verif_dupl() que impede a ocorrência de duplicatas ↓
         '''
-        if db.users.find_one({"user":"admin", "password":"123"}):
+        if db.users.find_one({"ac": '1'}):
             while True:
                 ## ↓ menuzin do adm ↓
                 print("-" * 10, " Menu do administrador ", ("-" * 10))
@@ -70,7 +75,14 @@ def logar():
                     break
                 elif op == 4:
                     userDelete = input("Digite o nome do usuário que deseja excluir do banco: ")
-                    users.delete_one({"user": userDelete})
+                    if userDelete == 'admin':
+                        print('Usuário chave para o funcionamento do banco, exclusão cancelada.')
+                    elif db.users.find_one({"user": userDelete}):
+                        users.delete_one({"user": userDelete})
+                        print('Usuário deletado com sucesso.')
+                    else:
+                        print ('Usuário não encontrado.')
+                        break
                 elif op == 5:
                     for user in (db.users.find()):
                         print(user)
@@ -84,6 +96,7 @@ def logar():
                 print("1.Ver Perfil")
                 print("2.Criar usuário")
                 print("3.Sair")
+                print("4.Deletar minha conta")
                 op = int(input(""))
                 if op == 1:
                     print(userLogIn)
@@ -92,6 +105,12 @@ def logar():
                 elif op == 3:
                     tentativas = 4
                     break
+                elif op == 4:
+                    confirm = input('Deseja mesmo deletar sua conta? Digite seu usuário para confirmar: ')
+                    if confirm == userLogIn:
+                        users.delete_one({"user": confirm})
+                    else:
+                        print("Exclusão cancelada.")
                 else:
                     print("Escolha entre as opções disponíveis")
         ## verifica se a senha para o user especificado está correta ($ne = not equal)
@@ -103,16 +122,20 @@ def logar():
             tentativas += 1
             print ('Usuário não encontrado')
             return
-print('-'*10, 'Menu', '-'*10)
+
 
 def menu():
-    ch = int(input('Escolha uma opção \n 1. Logar \n 2. Cadastrar \n 3. Encerrar'))
+    print('-' * 10, 'Menu', '-' * 10)
+    ch = int(input('Escolha uma opção \n 1. Logar \n 2. Cadastrar \n 3. Encerrar \n 4. Resetar banco (EXCLUI TODOS OS REGISTROS DO BANCO DE DADOS)\n'))
     if ch == 1:
         logar()
     elif ch == 2:
         cadastro()
     elif ch == 3:
         exit()
+    elif ch == 4:
+        db.users.delete_many({'user': {"$ne": "admin"}})
+        menu()
     else:
         print('Escolha uma opção válida')
         return
