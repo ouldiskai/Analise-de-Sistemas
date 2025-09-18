@@ -1,3 +1,5 @@
+from time import sleep
+
 import pymongo
 from pymongo import MongoClient
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -55,7 +57,7 @@ def logar():
            verifica se o usuário é o administrador em específico, isso só é possível por conta
          ↓ da função verif_dupl() que impede a ocorrência de duplicatas ↓
         '''
-        if db.users.find_one({"ac": '1'}):
+        if userLogIn == 'admin' and passwordLogIn == '123':
             while True:
                 ## ↓ menuzin do adm ↓
                 print("-" * 10, " Menu do administrador ", ("-" * 10))
@@ -82,7 +84,6 @@ def logar():
                         print('Usuário deletado com sucesso.')
                     else:
                         print ('Usuário não encontrado.')
-                        break
                 elif op == 5:
                     for user in (db.users.find()):
                         print(user)
@@ -109,6 +110,8 @@ def logar():
                     confirm = input('Deseja mesmo deletar sua conta? Digite seu usuário para confirmar: ')
                     if confirm == userLogIn:
                         users.delete_one({"user": confirm})
+                        print("Usuário excluído com sucesso")
+                        logar()
                     else:
                         print("Exclusão cancelada.")
                 else:
@@ -122,6 +125,13 @@ def logar():
             tentativas += 1
             print ('Usuário não encontrado')
             return
+    if tentativas > 3:
+        i = 10
+        while i > 0:
+            print(f'Timeout {i} segundos')
+            sleep(1)
+            i=i-1
+        return
 
 
 def menu():
