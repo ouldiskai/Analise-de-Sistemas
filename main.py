@@ -64,7 +64,7 @@ def logar():
                 op = int(input("Escolha: "))
 
                 if op == 1:
-                    print("Perfil:", userLogIn)
+                    print(f"Perfil: {userLogIn}")
                 elif op == 2:
                     cadastro()
                 elif op == 3:
@@ -97,7 +97,7 @@ def logar():
                 op = int(input("Escolha: "))
 
                 if op == 1:
-                    print("Perfil:", userLogIn)
+                    print(f"Perfil: {userLogIn}")
                 elif op == 2:
                     cadastro()
                 elif op == 3:
@@ -143,4 +143,5 @@ def menu():
     else:
         print('Escolha uma opção válida')
         return
+
 menu()
