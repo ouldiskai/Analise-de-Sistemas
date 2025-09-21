@@ -14,7 +14,7 @@ usuarios_inicias = [
     {"user": "usuario2", "password": "442"}
 ]
 
-def verif_dupl(user, password,ac):
+def verif_dupl(user, password,ac=''):
     # ↓ aqui ele verifica se o user já existe na coleção e, se sim, retorna o código
     if users.find_one({'user': user}):
         return -1
@@ -46,92 +46,86 @@ def cadastro():
         print('Senha diferente')
 
 def logar():
-    userLogIn = input('Insira seu usuário: ')
-    passwordLogIn = input('Insira senha: ')
     tentativas = 0
-    ## ↓ aqui ele verifica se o user  e a senha que a pessoa colocou batem ↓
-    login = (db.users.find_one({"user": userLogIn, "password": passwordLogIn}))
-    print (login)
     while tentativas < 3:
-        ''' 
-           verifica se o usuário é o administrador em específico, isso só é possível por conta
-         ↓ da função verif_dupl() que impede a ocorrência de duplicatas ↓
-        '''
+        userLogIn = input('Insira seu usuário: ')
+        passwordLogIn = input('Insira senha: ')
+
+        ## menu do adm
         if userLogIn == 'admin' and passwordLogIn == '123':
+            print("Login realizado com sucesso!")
             while True:
-                ## ↓ menuzin do adm ↓
                 print("-" * 10, " Menu do administrador ", ("-" * 10))
                 print("1.Ver Perfil")
                 print("2.Criar usuário")
                 print("3.Sair")
                 print("4.Remover usuário")
                 print("5.Ver todos os usuários cadastrados")
-                op = int(input(""))
+                op = int(input("Escolha: "))
+
                 if op == 1:
-                    print(userLogIn)
+                    print("Perfil:", userLogIn)
                 elif op == 2:
                     cadastro()
                 elif op == 3:
-                    ## ↓ seta tentativas pra 4 para que o código volte para antes do while e saia do loop ↓
-                    tentativas = 4
-                    break
+                    return
                 elif op == 4:
-                    userDelete = input("Digite o nome do usuário que deseja excluir do banco: ")
+                    userDelete = input("Digite o nome do usuário que deseja excluir: ")
                     if userDelete == 'admin':
-                        print('Usuário chave para o funcionamento do banco, exclusão cancelada.')
+                        print("Usuário chave para o funcionamento do banco, exclusão cancelada.")
                     elif db.users.find_one({"user": userDelete}):
                         users.delete_one({"user": userDelete})
-                        print('Usuário deletado com sucesso.')
+                        print("Usuário deletado com sucesso.")
                     else:
-                        print ('Usuário não encontrado.')
+                        print("Usuário não encontrado.")
                 elif op == 5:
-                    for user in (db.users.find()):
+                    for user in db.users.find():
                         print(user)
                 else:
                     print("Escolha entre as opções disponíveis")
+
+
         elif db.users.find_one({"user": userLogIn, "password": passwordLogIn}):
             print("Login realizado com sucesso!")
-            ## ↓ menuzinho pós login ↓
+            ## menu normal
             while True:
                 print("-" * 10, " Menu ", ("-" * 10))
                 print("1.Ver Perfil")
                 print("2.Criar usuário")
                 print("3.Sair")
                 print("4.Deletar minha conta")
-                op = int(input(""))
+                op = int(input("Escolha: "))
+
                 if op == 1:
-                    print(userLogIn)
+                    print("Perfil:", userLogIn)
                 elif op == 2:
                     cadastro()
                 elif op == 3:
-                    tentativas = 4
-                    break
+                    return
                 elif op == 4:
-                    confirm = input('Deseja mesmo deletar sua conta? Digite seu usuário para confirmar: ')
+                    confirm = input("Digite seu usuário para confirmar a exclusão: ")
                     if confirm == userLogIn:
                         users.delete_one({"user": confirm})
-                        print("Usuário excluído com sucesso")
-                        logar()
+                        print("Usuário excluído com sucesso.")
+                        return
                     else:
                         print("Exclusão cancelada.")
                 else:
                     print("Escolha entre as opções disponíveis")
-        ## verifica se a senha para o user especificado está correta ($ne = not equal)
-        elif db.users.find_one({"user":userLogIn, "password":{"$ne": passwordLogIn}}):
+        elif db.users.find_one({"user": userLogIn, "password": {"$ne": passwordLogIn}}):
             tentativas += 1
-            print ('Senha inválida')
-            return
+            print("Senha inválida")
         else:
             tentativas += 1
-            print ('Usuário não encontrado')
-            return
-    if tentativas > 3:
-        i = 10
-        while i > 0:
-            print(f'Timeout {i} segundos')
-            sleep(1)
-            i=i-1
-        return
+            print("Usuário não encontrado")
+    ## aqui ele ta saindo do loop while, o que significa que a variavel 'tentativas' passou de 3
+    print("Número máximo de tentativas excedido. Acesso bloqueado")
+    i = 10
+    while i > 0:
+        print(f"Timeout {i} segundos")
+        sleep(1)
+        i -= 1
+    return
 
 
 def menu():
